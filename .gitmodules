@@ -1,0 +1,3 @@
+[submodule "vendors/openresty"]
+	path = vendors/openresty
+	url = https://github.com/openresty/openresty.git
