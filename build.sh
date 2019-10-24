@@ -1,9 +1,10 @@
 #!/bin/bash
 
-#git submodule foreach git pull
-git submodule foreach  --recursive 'tag="$(git config -f $toplevel/.gitmodules submodule.$name.tag)";[[ -n $tag ]] && git reset --hard  $tag || echo "this module has no tag"'
+#pull submodule git submodule foreach git pull
 
-exit 0;
+git submodule foreach  --recursive 'tag="$(git config -f $toplevel/.gitmodules submodule.$name.tag)";[[ -n $tag ]] && git reset --hard  $tag || echo "this module has no tag"'
+git submodule foreach  --recursive 'branch="$(git config -f $toplevel/.gitmodules submodule.$name.branch)";[[ -n $branch ]] && git reset --hard  $branch || echo "this module has no branch"'
+git submodule foreach 'echo $path `git rev-parse HEAD`'
 
 INSTALL_PATH=/usr/local/myresty
 BUILDROOT=./build
