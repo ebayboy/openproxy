@@ -1,0 +1,59 @@
+
+#request: http://192.168.137.101/new1_fx_.gif?name=fanpf&age=11
+
+user  root;
+worker_processes  1;
+
+error_log  logs/error.log;
+
+events {
+    worker_connections  1024;
+}
+
+thread_pool pool_1 threads=32 max_queue=65536;
+thread_pool pool_2 threads=32 max_queue=65536;
+thread_pool pool_3 threads=32 max_queue=65536;
+thread_pool pool_4 threads=32 max_queue=65536;
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"'
+                      'http_referer [$http_referer]';
+
+    sendfile on;
+    access_log  logs/access.log  main;
+
+    upstream pa {
+        server 192.168.137.201:8080;
+    }
+
+    proxy_cache_path /usr/local/myresty/nginx/data1/cache levels=1:2 keys_zone=data_1:100m inactive=7d max_size=50g use_temp_path=off;
+    proxy_cache_path /usr/local/myresty/nginx/data2/cache levels=1:2 keys_zone=data_2:100m inactive=7d max_size=50g use_temp_path=off;
+    proxy_cache_path /usr/local/myresty/nginx/data3/cache levels=1:2 keys_zone=data_3:100m inactive=7d max_size=50g use_temp_path=off;
+    proxy_cache_path /usr/local/myresty/nginx/data4/cache levels=1:2 keys_zone=data_4:100m inactive=7d max_size=50g use_temp_path=off;
+
+    split_clients $request_uri $disk {
+        20% 1;
+        20% 2;
+        30% 3;
+        *   4;
+    }
+
+    server {
+        listen       80;
+        server_name  localhost;
+
+        location / {
+            proxy_cache data_$disk;
+            aio threads=pool_$disk;
+            proxy_cache_key $scheme$host$uri$is_args$args; 
+
+            proxy_pass http://pa;
+        }
+    }
+}
+

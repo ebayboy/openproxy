@@ -1,0 +1,119 @@
+
+user  root;
+worker_processes  1;
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    include       mime.types;
+
+    log_format  json_log_name  escape=json '{'
+        '"remote_addr" : "$remote_addr",'
+        '"host" : "$http_host",'
+        '"uri" : "$uri",'
+        '"sent_http_content_type" : "$sent_http_content_type",'
+        '"t" : "$t",'
+        '"v1" : "$v1",'
+        '"v2" : "$v2",'
+        '"http_referer" : "$http_referer" }';
+
+    access_log  logs/access.log  json_log_name;
+
+    upstream cache_backend {
+        server 192.168.137.201:8080;
+    }   
+
+    upstream moon { 
+        server 192.168.137.201:8080;
+    }
+    upstream sun {
+        server 192.168.137.201:8080;
+    }
+    upstream earth { 
+        server 192.168.137.201:8080;
+    }
+
+
+    server {
+        listen       80;
+        server_name  localhost;
+
+        location / {
+
+# set variable
+            set $t $arg_test;
+            set_if_empty $t 123;
+
+#set misc sql injection
+            set $v1 "testnginx\n\r'\"\\";
+            set_quote_sql_str $v2 $v1;
+
+            proxy_pass http://cache_backend;
+        }
+
+#test unescapte
+        location /test_unescape {
+            set_unescape_uri $key 'hello+world%21';
+            echo $key;
+        }
+    
+#test escapte
+        location /test_escape {
+            set_escape_uri $key 'hello world';
+            echo $key;
+        }
+
+        location /set_encode_base64 {
+            set_encode_base64 $key 'hello world';
+            echo $key;
+        }
+
+        location /set_decode_base64 {
+            set_decode_base64 $key 'aGVsbG8gd29ybGQ=';
+            echo $key;
+        }
+
+        location /set_md5 {
+            set_md5 $key 'hello world';
+            echo $key;
+        }
+
+        location /set_random {
+            set_random $result 1 100;
+            echo $result;
+        }
+
+#generate 16 byte alpha + num string 
+        location /set_secure_random_alphahum {
+            set_secure_random_alphanum $result 16;
+            echo $result;
+        }
+
+#lowercase alpha
+        location /set_secure_random_lcalpha {
+            set_secure_random_lcalpha $result 16;
+            echo $result;
+        }
+
+        location /set_local_today {
+            set_local_today $a;
+            echo $a;
+        }
+
+#set_hashed_upstream direct
+#test http://192.168.137.101/set_hashed_upstream/?hashkey=1114
+        upstream_list upstream_list_name moon sun earth;
+        location /set_hashed_upstream {
+            set_unescape_uri $key $arg_hashkey;
+            set $list_name upstream_list_name;
+            set_hashed_upstream $backend $list_name $key;
+
+            echo $key $backend;
+        }
+
+    }
+}
+

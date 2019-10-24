@@ -1,0 +1,70 @@
+
+user root;
+worker_processes  1;
+#worker_processes  auto;
+#worker_cpu_affinity auto;
+
+error_log  logs/error.log;
+pid        logs/nginx.pid;
+
+events {
+    worker_connections  1024;
+}
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+  
+    sendfile        on; 
+    keepalive_timeout  65; 
+
+    limit_conn_zone $binary_remote_addr zone=server_bb:10m;
+
+    limit_req_zone $binary_remote_addr zone=server_cc:1m rate=10r/m;
+
+    server {
+        listen 5656;
+        server_name server_aa;
+    
+        location / { 
+#limit rate to 1M byte/per second 
+            limit_rate 1M; 
+            limit_rate_after 100M;
+            limit_except GET {
+                deny all;
+            }
+
+            root html;
+        }   
+
+        location /limit_conn { 
+            root html;
+        }   
+    }
+
+#limit conn
+    server {
+        listen 5657;
+        server_name server_bb;
+
+        limit_rate 100k; 
+        limit_conn server_bb 1; 
+
+        location / { 
+            root html;
+        }   
+    }
+
+#limit req
+    server {
+        listen 5658;
+        server_name server_cc;
+        limit_req zone=server_cc burst=5 nodelay;
+
+        location / { 
+            root html;
+        }   
+    }
+
+}
+

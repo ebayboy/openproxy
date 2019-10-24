@@ -1,0 +1,42 @@
+
+user root;
+worker_processes  1;
+
+error_log  logs/error.log;
+pid        logs/nginx.pid;
+
+events {
+    worker_connections  1024;
+}
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+ 
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  logs/access.log  main;
+ 
+    sendfile        on; 
+
+    server {
+        listen 80;
+        server_name server_aa;
+        lua_code_cache off;  
+    
+        location / { 
+            resolver 8.8.8.8 valid=30s;
+            resolver_timeout 5s; 
+            set $upstream_host www.baidu.com;
+            proxy_pass http://$upstream_host;
+        }   
+
+        location /loadso {
+            content_by_lua_file conf/lua/loadso_new.lua;
+        }
+
+    }
+}
+

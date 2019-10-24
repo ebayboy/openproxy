@@ -1,0 +1,57 @@
+#test curl  http://192.168.137.101/test --cookie "name=value1;lang=XXXX"
+
+user  root;
+worker_processes  1;
+
+error_log  logs/error.log;
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  logs/access.log  main;
+
+    upstream pa {
+        server 192.168.137.201:8080;
+    }
+
+    lua_code_cache off;
+    server {
+        listen       80;
+        server_name  localhost;
+
+        location / {
+            proxy_pass http://pa;
+        }
+
+        location /test {
+            content_by_lua '
+                ngx.say("hit location test")
+            
+                local ck = require "resty.cookie"
+                local cookie, err = ck:new()
+                if not cookie then
+                    ngx.log(ngx.ERR, err)
+                end
+
+                --get single cookie
+                local field, err = cookie:get("lang")
+                if not field then
+                    ngx.log(ngx.ERR, err)
+                    return
+                end
+                ngx.say("lang", "=>", field)
+            ';
+        }
+    }
+}
+

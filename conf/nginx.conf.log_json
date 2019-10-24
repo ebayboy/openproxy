@@ -1,0 +1,37 @@
+
+user  root;
+worker_processes  1;
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+#json log , 日志打印不转码的汉字
+    log_format  json_log_name  escape=json '{'
+        '"remote_addr" : "$remote_addr",'
+        '"host" : "$http_host",'
+        '"uri" : "$uri",'
+        '"http_referer" : "$http_referer" }';
+
+    access_log  logs/access.log  json_log_name;
+
+    server {
+        listen       80;
+        server_name  localhost;
+
+        location / {
+            root   html;
+        }
+
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+    }
+}
+
