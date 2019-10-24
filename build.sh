@@ -1,12 +1,12 @@
 #!/bin/bash
 
-INSTALL_PATH=/usr/local/myresty
-BUILDROOT=./build
-OPENRESTY_VERSION=v1.15.8.2
-
-git submodule foreach git pull
+#git submodule foreach git pull
+git submodule foreach  --recursive 'tag="$(git config -f $toplevel/.gitmodules submodule.$name.tag)";[[ -n $tag ]] && git reset --hard  $tag || echo "this module has no tag"'
 
 exit 0;
+
+INSTALL_PATH=/usr/local/myresty
+BUILDROOT=./build
 
 #checkout code
 git checkout -b v1.15.8.2 v1.15.8.2
