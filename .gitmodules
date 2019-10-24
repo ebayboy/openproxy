@@ -1,9 +1,6 @@
 [submodule "vendors/openresty"]
 	path = vendors/openresty
 	url = https://github.com/openresty/openresty.git
-[submodule "3Party/lua_modules/nginx-auth-ldap"]
-	path = 3Party/lua_modules/nginx-auth-ldap
-	url = https://github.com/kvspb/nginx-auth-ldap.git
 [submodule "ngx_http_geoip2_module"]
 	path = ngx_http_geoip2_module
 	url = https://github.com/leev/ngx_http_geoip2_module.git
