@@ -10,3 +10,6 @@
 [submodule "3Party/nginx-sticky-module-ng"]
 	path = 3Party/nginx-sticky-module-ng
 	url = https://github.com/kvspb/nginx-auth-ldap.git
+[submodule "3Party/lua_modules/lua-resty-cookie"]
+	path = 3Party/lua_modules/lua-resty-cookie
+	url = https://github.com/cloudflare/lua-resty-cookie.git
