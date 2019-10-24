@@ -13,3 +13,6 @@
 [submodule "3Party/lua_modules/lua-resty-cookie"]
 	path = 3Party/lua_modules/lua-resty-cookie
 	url = https://github.com/cloudflare/lua-resty-cookie.git
+[submodule "3Party/lua_modules/lua-resty-http"]
+	path = 3Party/lua_modules/lua-resty-http
+	url = https://github.com/ledgetech/lua-resty-http.git
