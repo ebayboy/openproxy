@@ -1,24 +1,20 @@
 #!/bin/bash
 
-#pull submodule git submodule foreach git pull
-
-git submodule foreach  --recursive 'tag="$(git config -f $toplevel/.gitmodules submodule.$name.tag)";[[ -n $tag ]] && git reset --hard  $tag || echo "this module has no tag"'
-git submodule foreach  --recursive 'branch="$(git config -f $toplevel/.gitmodules submodule.$name.branch)";[[ -n $branch ]] && git reset --hard  $branch || echo "this module has no branch"'
-git submodule foreach 'echo $path `git rev-parse HEAD`'
-
+BUILD_PATH=./build/
+OPENRESTY_VER=openresty-1.15.8.2
+BUILD_ROOT=$BUILD_PATH/openresty
 INSTALL_PATH=/usr/local/myresty
-BUILDROOT=./build
 
-#checkout code
-git checkout -b v1.15.8.2 v1.15.8.2
+rm -rf $BUILD_PATH && mkdir $BUILD_PATH
 
-rf -rf $BUILDROOT &&  mkdir $BUILDROOT
+tar -xvf vendors/$OPENRESTY_VER.tar.gz -C $BUILD_PATH  1>/dev/null || exit 1;
+
+mv $BUILD_PATH/$OPENRESTY_VER/ $BUILD_ROOT 1>/dev/null || exit 1;
 
 #copy code
-cp -afR vendors/openresty/ $BUILDROOT
-cp -afR 3Party/ $BUILDROOT
+cp -afR 3Party/ $BUILD_ROOT
 
-cd $BUILDROOT
+cd $BUILD_ROOT
 
 ./configure \
     --prefix=/usr/local/myresty \
@@ -32,19 +28,14 @@ cd $BUILDROOT
     --with-file-aio \
     --with-http_ssl_module \
     --with-http_stub_status_module  \
-    --with-http_image_filter_module  \
-    --add-module=./3Party/nginx-auth-ldap   \
-    --add-module=./3Party/nginx-sticky-module-ng    
+    --with-http_image_filter_module  
 
 gmake && gmake install
 
 #install my lua_modules
-cd ./3Party/lua_modules 
-sh ./build_lua_modules.sh  
-cp lib/* /usr/local/myresty/lualib/ -R
-cd -
-
-cd ../
+#cd ./3Party/lua_modules 
+#sh ./build_lua_modules.sh  
+#cp lib/* /usr/local/myresty/lualib/ -R
 
 #tar 
 
